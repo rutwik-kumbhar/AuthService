@@ -80,6 +80,7 @@ public class JwtUtil {
      * @return Jws<Claims> object
      */
     private Jws<Claims> parseToken(String token) {
+        log.info("parse token  : {}" , token);
         byte[] decodedKey = Base64.getDecoder().decode(jwtSecret);
         SecretKey signingKey = Keys.hmacShaKeyFor(decodedKey);
         return Jwts.parserBuilder()
@@ -95,22 +96,23 @@ public class JwtUtil {
      * @param token the JWT token
      */
     public void validateToken(String token) {
+        log.info("validateToken : token {}" , token);
         try {
             parseToken(token);
         } catch (ExpiredJwtException e) {
-            log.warn("JWT token expired: {}", e.getMessage());
+            log.info("JWT token expired: {}", e.getMessage());
             throw e;
         } catch (UnsupportedJwtException e) {
-            log.warn("JWT token unsupported: {}", e.getMessage());
+            log.info("JWT token unsupported: {}", e.getMessage());
             throw e;
         } catch (MalformedJwtException e) {
-            log.warn("JWT token malformed: {}", e.getMessage());
+            log.info("JWT token malformed: {}", e.getMessage());
             throw e;
         } catch (SignatureException e) {
-            log.warn("JWT signature invalid: {}", e.getMessage());
+            log.info("JWT signature invalid: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.warn("JWT validation error: {}", e.getMessage());
+            log.info("JWT validation error: {}", e.getMessage());
             throw new RuntimeException("JWT validation failed", e);
         }
     }

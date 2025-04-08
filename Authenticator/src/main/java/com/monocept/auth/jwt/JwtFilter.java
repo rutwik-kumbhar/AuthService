@@ -1,5 +1,9 @@
 package com.monocept.auth.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +16,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Collections;
 
 public class JwtFilter extends OncePerRequestFilter {
@@ -30,8 +36,11 @@ public class JwtFilter extends OncePerRequestFilter {
         HttpServletRequest  httpServletRequest = (HttpServletRequest)request;
 
         String endPoint = httpServletRequest.getServletPath();
-        log.info("doFilter : api end point {} " , endPoint);
-
+//        log.info("doFilter : api end point {} " , endPoint);
+//        if (request.getServletPath().startsWith("/api/auth/token")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         String header = request.getHeader("Authorization");
 
@@ -41,14 +50,27 @@ public class JwtFilter extends OncePerRequestFilter {
             logger.info("Token Found: " + token);
 
               try {
-                  jwtUtil.validateToken(token);
+                  log.info("parse token  : {}" , token);
+                  byte[] decodedKey = Base64.getDecoder().decode("kRkBIlMMJTzkMlEuty3UDc/21E6DHRraZQgr/QUIZ8s=");
+                  SecretKey signingKey = Keys.hmacShaKeyFor(decodedKey);
+                  Jws<Claims> claimsJws = Jwts.parserBuilder()
+                          .setSigningKey(signingKey)
+                          .build()
+                          .parseClaimsJws(token);
+                  log.info("claimsJws : {}" , claimsJws);
+                  chain.doFilter(request, response);
+                    return;
+//                  chain.doFilter(request, response);
+//                  jwtUtil.validateToken(token);
               }catch (Exception e){
-                  response.sendError(HttpServletResponse.SC_UNAUTHORIZED , e.getMessage());
+                  log.info("JWT Filter : {}" , e.getMessage() );
+                  chain.doFilter(request, response);
+//                  response.sendError(HttpServletResponse.SC_UNAUTHORIZED , e.getMessage());
               }
 
         } else {
             response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED, "Invalid token Format");
-            log.error("No Token Found in Request");
+            log.info("No Token Found in Request");
         }
 
         chain.doFilter(request, response);

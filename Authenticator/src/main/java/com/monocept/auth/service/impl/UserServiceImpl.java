@@ -4,6 +4,9 @@ import com.monocept.auth.entity.User;
 import com.monocept.auth.jwt.JwtUtil;
 import com.monocept.auth.repository.UserRepository;
 import com.monocept.auth.service.UserService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -11,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService , UserDetailsService {
 
 
     private final  UserRepository userRepository;
@@ -43,4 +46,8 @@ public class UserServiceImpl implements UserService {
         return jwtUtil.generateToken(request.get("email"), request); // assuming you use email + user for token
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return null;
+    }
 }

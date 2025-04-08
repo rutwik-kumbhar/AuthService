@@ -14,32 +14,50 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
-//@EnableWebSecurity
 public class SecurityConfig {
-    private final JwtUtil jwtUtil;
-//
-//
-    @Autowired
+
+    private final  JwtUtil jwtUtil;
+
     public SecurityConfig(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+    public SecurityFilterChain authSecurityConfig(HttpSecurity http) throws Exception {
+        http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .cors(cors -> cors.configurationSource(request -> {
+
+                    CorsConfiguration cfg = new CorsConfiguration();
+
+                    cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
+                    cfg.setAllowedMethods(Collections.singletonList("*"));
+                    cfg.setAllowCredentials(true);
+                    cfg.setAllowedHeaders(Collections.singletonList("*"));
+                    cfg.setExposedHeaders(List.of("Authorization"));
+                    return cfg;
+                }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/h2-console/**", "/favicon.ico").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .addFilterAfter(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-                .csrf(csrf -> csrf.disable())
+                        .requestMatchers("/api/auth/**").permitAll())
+                .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new JwtFilter(jwtUtil), BasicAuthenticationFilter.class)
                 .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults())
-                .build();
+                .httpBasic(Customizer.withDefaults());
+        return http.build();
+
     }
 
 
+
+
 }
+
+
+//.anyRequest().authenticated()

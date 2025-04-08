@@ -23,6 +23,7 @@ class AuthController {
         this.userService = userService;
     }
 
+    @PostMapping("/token")
     public ResponseEntity<MasterResponse<Map<String, String>>> generateToken(@RequestBody Map<String, String> request) {
         MasterResponse<Map<String, String>> response;
         try {
