@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService , UserDetailsService {
     @Override
     public String createUserAndGenerateToken(Map<String, String> request) {
 
-        String redisKey = "user:request:" + request.get("");
+        String redisKey = "user:request:" + request.get("agentId");
 
         // 1. Check if data already exists in Redis
         Boolean exists = redisTemplate.hasKey(redisKey);
