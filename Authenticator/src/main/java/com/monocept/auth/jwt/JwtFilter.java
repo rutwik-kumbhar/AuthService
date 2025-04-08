@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Collections;
 
-public class JwtFilter extends OncePerRequestFilter {
+public class    JwtFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     private final JwtUtil jwtUtil;

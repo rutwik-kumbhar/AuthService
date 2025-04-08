@@ -4,6 +4,7 @@ import com.monocept.auth.entity.User;
 import com.monocept.auth.jwt.JwtUtil;
 import com.monocept.auth.repository.UserRepository;
 import com.monocept.auth.service.UserService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,16 +18,31 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService , UserDetailsService {
 
 
-    private final  UserRepository userRepository;
-    private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil) {
+
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, RedisTemplate<String, Object> redisTemplate) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public String createUserAndGenerateToken(Map<String, String> request) {
+
+        String redisKey = "user:request:" + request.get("");
+
+        // 1. Check if data already exists in Redis
+        Boolean exists = redisTemplate.hasKey(redisKey);
+
+        // 2. If not exists, store the request data
+        if (Boolean.FALSE.equals(exists)) {
+            redisTemplate.opsForValue().set(redisKey, request); // store without TTL
+        }
+
         Optional<User> optionalUser = userRepository.findByAgentId(request.get("agentId"));
 
         if (optionalUser.isEmpty()) {
